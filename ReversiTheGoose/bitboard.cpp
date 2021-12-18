@@ -212,5 +212,6 @@ void bitboard::InitAttackTable()
                 kRFAttackTable[square][horizontal | vertical << 8] = attack_board;
             }
         }
+
     }
 }
