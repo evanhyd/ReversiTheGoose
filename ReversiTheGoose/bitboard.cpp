@@ -2,17 +2,17 @@
 #include <iostream>
 
 
-U64 bitboard::kSquareToRank[kGridNum];
-U64 bitboard::kSquareToFile[kGridNum];
+U64 bitboard::kRankMaskTable[kGridNum] = { 0 };
+U64 bitboard::kFileMaskTable[kGridNum] = { 0 };
+U64 bitboard::kDiagonalMaskTable[kGridNum] = { 0 };
+U64 bitboard::kAntiDiagonalMaskTable[kGridNum] = { 0 };
+U64 bitboard::kRFCrossMaskTable[kGridNum] = { 0 };
+U64 bitboard::kDCrossMaskTable[kGridNum] = { 0 };
+U64 bitboard::kCrossMaskTable[kGridNum] = { 0 };
 
-U64 bitboard::kRankMaskTable[kGridNum];
-U64 bitboard::kFileMaskTable[kGridNum];
-U64 bitboard::kDiagonalMaskTable[kGridNum];
-U64 bitboard::kAntiDiagonalMaskTable[kGridNum];
 
-U64 bitboard::kRFCrossMaskTable[kGridNum];
-U64 bitboard::kDCrossMaskTable[kGridNum];
-U64 bitboard::kCrossMaskTable[kGridNum];
+U64 bitboard::kRFAttackTable[kGridNum][1 << 16] = { 0 };
+U64 bitboard::kDAttackTable[kGridNum][1 << 16] = { 0 };
 
 
 void bitboard::PrintBoard(U64 board)
@@ -21,7 +21,7 @@ void bitboard::PrintBoard(U64 board)
     {
         for (int file = 0; file < kFileNum; ++file)
         {
-            std::cout << (board & 1);
+            std::cout << (board & 1) << ' ';
             board >>= 1;
         }
 
@@ -42,32 +42,35 @@ U64 bitboard::ClearBit(U64 board, int square)
 
 
 
+int bitboard::SquareToRank(int square)
+{
+    //square / 8
+    return square >> 3;
+}
+int bitboard::SquareToFile(int square)
+{
+    //square % 8
+    return square & 7;
+}
 
 U64 bitboard::HashByRFCross(U64 board, int square)
 {
-    return (board >> (kSquareToRank[square] * 8) & kRankMaskTable[0]) |
-           (((board >> kSquareToFile[square] & kFileMaskTable[0]) * kDiagonalMaskTable[7]) >> 56 << 8);
+    return 
+        (board >> (SquareToRank(square) * 8) & kRankMaskTable[0]) |
+        (((board >> SquareToFile(square) & kFileMaskTable[0]) * kDiagonalMaskTable[7]) >> 56 << 8);
 }
 
 U64 bitboard::HashByDCross(U64 board, int square)
 {
-    return 0;
+    return
+        (((board & kDiagonalMaskTable[square]) * kFileMaskTable[0]) >> 56) |
+        (((board & kAntiDiagonalMaskTable[square]) * kFileMaskTable[0]) >> 56 << 8);
 }
 
 
 
-void bitboard::InitTable()
+void bitboard::InitMaskTable()
 {
-    //initialize rank file look up table
-    for (int rank = 0; rank < kRankNum; ++rank)
-    {
-        for (int file = 0; file < kFileNum; ++file)
-        {
-            kSquareToRank[rank * 8 + file] = rank;
-            kSquareToFile[rank * 8 + file] = file;
-        }
-    }
-
 
     //initialize rank table
     U64 rank_mask = 0b11111111;
@@ -126,7 +129,7 @@ void bitboard::InitTable()
     {
         for (int file = 0; file < kFileNum; ++file)
         {
-            kAntiDiagonalMaskTable[rank * 8 + file] = anti_diagonals[rank + kFileNum - 1 - file];
+            kAntiDiagonalMaskTable[rank * 8 + file] = anti_diagonals[kFileNum - 1 - rank + file];
         }
     }
 
@@ -138,5 +141,76 @@ void bitboard::InitTable()
         kRFCrossMaskTable[square] = kRankMaskTable[square] | kFileMaskTable[square];
         kDCrossMaskTable[square] = kDiagonalMaskTable[square] | kAntiDiagonalMaskTable[square];
         kCrossMaskTable[square] = kRFCrossMaskTable[square] | kDCrossMaskTable[square];
+    }
+}
+
+
+void bitboard::InitAttackTable()
+{
+    for (int square = 0; square < kGridNum; ++square)
+    {
+        int rank = SquareToRank(square);
+        int file = SquareToFile(square);
+
+        for (U64 horizontal = 0; horizontal < (1ull << 8); ++horizontal)
+        {
+            for (U64 vertical = 0; vertical < (1ull << 8); ++vertical)
+            {
+                //0 is occupied, 1 is empty
+                U64 enemy_board = (horizontal << (rank * 8)) | (((vertical * kDiagonalMaskTable[7]) & kFileMaskTable[7]) >> (7 - file));
+                U64 attack_board = 0;
+
+
+                //check attack square for up
+                for (int x = rank - 1; x >= 0; --x)
+                {
+                    int attack_square = x * 8 + file;
+
+                    if (enemy_board >> attack_square & 1)
+                    {
+                        attack_board |= 1ull << attack_square;
+                        break;
+                    }
+                }
+
+                //check attack square for down
+                for (int x = rank + 1; x < kRankNum; ++x)
+                {
+                    int attack_square = x * 8 + file;
+
+                    if (enemy_board >> attack_square & 1)
+                    {
+                        attack_board |= 1ull << attack_square;
+                        break;
+                    }
+                }
+
+                //check attack square for left
+                for (int y = file - 1; y >= 0; --y)
+                {
+                    int attack_square = rank * 8 + y;
+
+                    if (enemy_board >> attack_square & 1)
+                    {
+                        attack_board |= 1ull << attack_square;
+                        break;
+                    }
+                }
+
+                //check attack square for right
+                for (int y = file + 1; y < kFileNum; ++y)
+                {
+                    int attack_square = rank * 8 + y;
+
+                    if (enemy_board >> attack_square & 1)
+                    {
+                        attack_board |= 1ull << attack_square;
+                        break;
+                    }
+                }
+
+                kRFAttackTable[square][horizontal | vertical << 8] = attack_board;
+            }
+        }
     }
 }

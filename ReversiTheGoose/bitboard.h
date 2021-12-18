@@ -7,11 +7,6 @@ namespace bitboard
     constexpr int kRankNum = 8;
     constexpr int kFileNum = 8;
     constexpr int kGridNum = kRankNum * kFileNum;
-
-
-    //square to rank/file conversion table
-    extern U64 kSquareToRank[kGridNum];
-    extern U64 kSquareToFile[kGridNum];
     
 
     //various mask tables
@@ -25,7 +20,7 @@ namespace bitboard
 
 
 
-    //precalculate attack table
+    //precalculated attack table
     extern U64 kRFAttackTable[kGridNum][1 << 16]; //rank/file attack table
     extern U64 kDAttackTable[kGridNum][1 << 16]; //anti/diagonal attack table
 
@@ -35,12 +30,12 @@ namespace bitboard
     U64 SetBit(U64 board, int square);
     U64 ClearBit(U64 board, int square);
 
+    int SquareToRank(int square);
+    int SquareToFile(int square);
     U64 HashByRFCross(U64 board, int square);
     U64 HashByDCross(U64 board, int square);
 
-
-
-
-    void InitTable();
+    void InitMaskTable();
+    void InitAttackTable();
 }
 
