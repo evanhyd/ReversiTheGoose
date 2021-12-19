@@ -106,6 +106,7 @@ void bitboard::InitMaskTable()
     for (int level = 1; level < kMaxLevel; ++level)
     {
         diagonals[level] = diagonals[level - 1] << 1 & ~kFileMaskTable[0] | diagonals[level - 1] << 8;
+        PrintBoard(diagonals[level]);
     }
 
     for (int rank = 0; rank < kRankNum; ++rank)
@@ -145,6 +146,12 @@ void bitboard::InitMaskTable()
 }
 
 
+U64 bitboard::GetAttackBoard(U64 board, int square)
+{
+    return kRFAttackTable[square][HashByRFCross(board, square)] | kDAttackTable[square][HashByDCross(board, square)];
+}
+
+
 void bitboard::InitAttackTable()
 {
     for (int square = 0; square < kGridNum; ++square)
@@ -156,60 +163,115 @@ void bitboard::InitAttackTable()
         {
             for (U64 vertical = 0; vertical < (1ull << 8); ++vertical)
             {
-                //0 is occupied, 1 is empty
+                //0 is empty, 1 is occupied
                 U64 enemy_board = (horizontal << (rank * 8)) | (((vertical * kDiagonalMaskTable[7]) & kFileMaskTable[7]) >> (7 - file));
                 U64 attack_board = 0;
 
 
                 //check attack square for up
-                for (int x = rank - 1; x >= 0; --x)
+                for (int x = rank - 1, dist = 0; x >= 0; --x, ++dist)
                 {
                     int attack_square = x * 8 + file;
 
-                    if (enemy_board >> attack_square & 1)
+                    if ((enemy_board >> attack_square & 1) == 0)
                     {
-                        attack_board |= 1ull << attack_square;
+                        if(dist > 0) attack_board |= 1ull << attack_square;
                         break;
                     }
                 }
 
                 //check attack square for down
-                for (int x = rank + 1; x < kRankNum; ++x)
+                for (int x = rank + 1, dist = 0; x < kRankNum; ++x, ++dist)
                 {
                     int attack_square = x * 8 + file;
 
-                    if (enemy_board >> attack_square & 1)
+                    if ((enemy_board >> attack_square & 1) == 0)
                     {
-                        attack_board |= 1ull << attack_square;
+                        if (dist > 0) attack_board |= 1ull << attack_square;
                         break;
                     }
                 }
 
                 //check attack square for left
-                for (int y = file - 1; y >= 0; --y)
+                for (int y = file - 1, dist = 0; y >= 0; --y, ++dist)
                 {
                     int attack_square = rank * 8 + y;
 
-                    if (enemy_board >> attack_square & 1)
+                    if ((enemy_board >> attack_square & 1) == 0)
                     {
-                        attack_board |= 1ull << attack_square;
+                        if (dist > 0) attack_board |= 1ull << attack_square;
                         break;
                     }
                 }
 
                 //check attack square for right
-                for (int y = file + 1; y < kFileNum; ++y)
+                for (int y = file + 1, dist = 0; y < kFileNum; ++y, ++dist)
                 {
                     int attack_square = rank * 8 + y;
 
-                    if (enemy_board >> attack_square & 1)
+                    if ((enemy_board >> attack_square & 1) == 0)
                     {
-                        attack_board |= 1ull << attack_square;
+                        if (dist > 0) attack_board |= 1ull << attack_square;
                         break;
                     }
                 }
 
                 kRFAttackTable[square][horizontal | vertical << 8] = attack_board;
+            }
+        }
+
+        for (U64 diagonal = 0; diagonal < (1ull << 8); ++diagonal)
+        {
+            for (U64 anti_diagonal = 0; anti_diagonal < (1ull << 8); ++anti_diagonal)
+            {
+                U64 enemy_board = ((diagonal * bitboard::kFileMaskTable[0]) & bitboard::kDiagonalMaskTable[square]) | ((anti_diagonal * bitboard::kFileMaskTable[0]) & bitboard::kAntiDiagonalMaskTable[square]);
+                U64 attack_board = 0;
+
+                for (int x = rank - 1, y = file - 1, dist = 0; x >= 0 && y >= 0; --x, --y, ++dist)
+                {
+                    int attack_square = x * 8 + y;
+
+                    if ((enemy_board >> attack_square & 1) == 0)
+                    {
+                        if (dist > 0) attack_board |= 1ull << attack_square;
+                        break;
+                    }
+                }
+
+                for (int x = rank - 1, y = file + 1, dist = 0; x >= 0 && y < kFileNum; --x, ++y, ++dist)
+                {
+                    int attack_square = x * 8 + y;
+
+                    if ((enemy_board >> attack_square & 1) == 0)
+                    {
+                        if (dist > 0) attack_board |= 1ull << attack_square;
+                        break;
+                    }
+                }
+
+                for (int x = rank + 1, y = file - 1, dist = 0; x < kRankNum && y >= 0; ++x, --y, ++dist)
+                {
+                    int attack_square = x * 8 + y;
+
+                    if ((enemy_board >> attack_square & 1) == 0)
+                    {
+                        if (dist > 0) attack_board |= 1ull << attack_square;
+                        break;
+                    }
+                }
+
+                for (int x = rank + 1, y = file + 1, dist = 0; x < kRankNum && y < kFileNum; ++x, ++y, ++dist)
+                {
+                    int attack_square = x * 8 + y;
+
+                    if ((enemy_board >> attack_square & 1) == 0)
+                    {
+                        if (dist > 0) attack_board |= 1ull << attack_square;
+                        break;
+                    }
+                }
+
+                kDAttackTable[square][diagonal | anti_diagonal << 8] = attack_board;
             }
         }
 

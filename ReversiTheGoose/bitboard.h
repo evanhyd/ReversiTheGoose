@@ -35,6 +35,8 @@ namespace bitboard
     U64 HashByRFCross(U64 board, int square);
     U64 HashByDCross(U64 board, int square);
 
+    U64 GetAttackBoard(U64 board, int square);
+
     void InitMaskTable();
     void InitAttackTable();
 }

@@ -22,12 +22,14 @@ int main()
 
     std::cout << "All the tables have been loaded\n";
 
+
+    
+
     srand(time(NULL));
+    int square = 3 * 8 + 2;
     U64 a = U64(rand()) << 48 | U64(rand()) << 32 | U64(rand()) << 16 | rand();
 
     bitboard::PrintBoard(a);
-    int square = 6 * 8 + 4;
-    a = bitboard::kRFAttackTable[square][bitboard::HashByRFCross(a, square)];
-    bitboard::PrintBoard(a);
+    bitboard::PrintBoard(bitboard::GetAttackBoard(a, square));
 
 }
