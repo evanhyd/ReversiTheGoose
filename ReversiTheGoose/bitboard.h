@@ -7,6 +7,14 @@ namespace bitboard
     constexpr int kRankNum = 8;
     constexpr int kFileNum = 8;
     constexpr int kGridNum = kRankNum * kFileNum;
+
+    //compiled time mask
+    constexpr U64 kFirstRankMask = 0b11111111;
+    constexpr U64 kLastRankMask = kFirstRankMask << 56;
+    constexpr U64 kFirstFileMask = 0x101010101010101;
+    constexpr U64 kLastFileMask = kFirstFileMask << 7; 
+    constexpr U64 kMainDiagonalMask = 0x102040810204080;
+    constexpr U64 kMainAntiDiagonalMask = 0x8040201008040201;
     
 
     //various mask tables

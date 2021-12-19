@@ -44,27 +44,27 @@ U64 bitboard::ClearBit(U64 board, int square)
 
 int bitboard::SquareToRank(int square)
 {
-    //square / 8
+    //divided by 8
     return square >> 3;
 }
 int bitboard::SquareToFile(int square)
 {
-    //square % 8
+    //modulo 8
     return square & 7;
 }
 
 U64 bitboard::HashByRFCross(U64 board, int square)
 {
     return 
-        (board >> (SquareToRank(square) * 8) & kRankMaskTable[0]) |
-        (((board >> SquareToFile(square) & kFileMaskTable[0]) * kDiagonalMaskTable[7]) >> 56 << 8);
+        (board >> (SquareToRank(square) * 8) & kFirstRankMask) |
+        (((board >> SquareToFile(square) & kFirstFileMask) * kMainDiagonalMask) >> 56 << 8);
 }
 
 U64 bitboard::HashByDCross(U64 board, int square)
 {
     return
-        (((board & kDiagonalMaskTable[square]) * kFileMaskTable[0]) >> 56) |
-        (((board & kAntiDiagonalMaskTable[square]) * kFileMaskTable[0]) >> 56 << 8);
+        (((board & kDiagonalMaskTable[square]) * kFirstFileMask) >> 56) |
+        (((board & kAntiDiagonalMaskTable[square]) * kFirstFileMask) >> 56 << 8);
 }
 
 
@@ -105,8 +105,7 @@ void bitboard::InitMaskTable()
     U64 diagonals[kMaxLevel] = { 1 };
     for (int level = 1; level < kMaxLevel; ++level)
     {
-        diagonals[level] = diagonals[level - 1] << 1 & ~kFileMaskTable[0] | diagonals[level - 1] << 8;
-        PrintBoard(diagonals[level]);
+        diagonals[level] = diagonals[level - 1] << 1 & ~kFirstFileMask | diagonals[level - 1] << 8;
     }
 
     for (int rank = 0; rank < kRankNum; ++rank)
@@ -123,7 +122,7 @@ void bitboard::InitMaskTable()
     U64 anti_diagonals[kMaxLevel] = { 1ull << 56 };
     for (int level = 1; level < kMaxLevel; ++level)
     {
-        anti_diagonals[level] = anti_diagonals[level - 1] << 1 & ~kFileMaskTable[0] | anti_diagonals[level - 1] >> 8;
+        anti_diagonals[level] = anti_diagonals[level - 1] << 1 & ~kFirstFileMask | anti_diagonals[level - 1] >> 8;
     }
 
     for (int rank = 0; rank < kRankNum; ++rank)
@@ -143,6 +142,11 @@ void bitboard::InitMaskTable()
         kDCrossMaskTable[square] = kDiagonalMaskTable[square] | kAntiDiagonalMaskTable[square];
         kCrossMaskTable[square] = kRFCrossMaskTable[square] | kDCrossMaskTable[square];
     }
+
+    //hash all the possible positions -> attack table
+
+
+    //transposition table
 }
 
 
@@ -164,7 +168,7 @@ void bitboard::InitAttackTable()
             for (U64 vertical = 0; vertical < (1ull << 8); ++vertical)
             {
                 //0 is empty, 1 is occupied
-                U64 enemy_board = (horizontal << (rank * 8)) | (((vertical * kDiagonalMaskTable[7]) & kFileMaskTable[7]) >> (7 - file));
+                U64 enemy_board = (horizontal << (rank * 8)) | (((vertical * kMainDiagonalMask) & kLastFileMask) >> (7 - file));
                 U64 attack_board = 0;
 
 
@@ -224,7 +228,7 @@ void bitboard::InitAttackTable()
         {
             for (U64 anti_diagonal = 0; anti_diagonal < (1ull << 8); ++anti_diagonal)
             {
-                U64 enemy_board = ((diagonal * bitboard::kFileMaskTable[0]) & bitboard::kDiagonalMaskTable[square]) | ((anti_diagonal * bitboard::kFileMaskTable[0]) & bitboard::kAntiDiagonalMaskTable[square]);
+                U64 enemy_board = ((diagonal * kFirstFileMask) & kDiagonalMaskTable[square]) | ((anti_diagonal * kFirstFileMask) & kAntiDiagonalMaskTable[square]);
                 U64 attack_board = 0;
 
                 for (int x = rank - 1, y = file - 1, dist = 0; x >= 0 && y >= 0; --x, --y, ++dist)
