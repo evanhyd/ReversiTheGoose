@@ -35,11 +35,11 @@ namespace bitboard
 
 
     void PrintBoard(U64 board);
+    int SquareToRank(int square);
+    int SquareToFile(int square);
     U64 SetBit(U64 board, int square);
     U64 ClearBit(U64 board, int square);
 
-    int SquareToRank(int square);
-    int SquareToFile(int square);
     U64 HashByRFCross(U64 board, int square);
     U64 HashByDCross(U64 board, int square);
 
