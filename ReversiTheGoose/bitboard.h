@@ -52,6 +52,7 @@ namespace bitboard
     int SquareToFile(int square);
     bool IsSetBit(U64 board, int square);
     U64 SetBit(U64 board, int square);
+    U64 FlipBit(U64 board, int square);
     U64 ClearBit(U64 board, int square);
     int CountSetBit(U64 board);
     void PrintBoard(U64 board);

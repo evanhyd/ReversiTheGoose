@@ -40,6 +40,11 @@ U64 bitboard::SetBit(U64 board, int square)
     return board | 1ull << square;
 }
 
+U64 bitboard::FlipBit(U64 board, int square)
+{
+    return board ^ 1ull << square;
+}
+
 U64 bitboard::ClearBit(U64 board, int square)
 {
     return board & ~(1ull << square);
@@ -171,21 +176,21 @@ void bitboard::InitMaskTable()
     //transposition table
 }
 
-
+//returns the 8x8 board with all attack squares in it
 U64 bitboard::GetAttackBoard(U64 board, int square)
 {
     return kRFAttackTable[square][HashByRFCross(board, square)] | kDAttackTable[square][HashByDCross(board, square)];
 }
 
-
+//initializes the two attack tables (Rank+File and Diagonals), where the index is the 16 bit hash and the value is the 8x8 board with the attack pieces in them
 void bitboard::InitAttackTable()
 {
-    for (int square = 0; square < kGridNum; ++square)
+    for (int square = 0; square < kGridNum; ++square) 
     {
         int rank = SquareToRank(square);
         int file = SquareToFile(square);
 
-        for (U64 horizontal = 0; horizontal < (1ull << 8); ++horizontal)
+        for (U64 horizontal = 0; horizontal < (1ull << 8); ++horizontal) //right now there are 4 times as many tables as needed because the horizontal and vertical values at the target square's position don't matter.
         {
             for (U64 vertical = 0; vertical < (1ull << 8); ++vertical)
             {
