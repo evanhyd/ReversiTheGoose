@@ -57,7 +57,9 @@ namespace bitboard
     void PrintBoard(U64 board);
 
     U64 HashByRFCross(U64 board, int square);
+    U64 UnhashByRFCross(U64 hash, int square);
     U64 HashByDCross(U64 board, int square);
+    U64 UnhashByDCross(U64 hash, int square);
 
     U64 GetAttackBoard(U64 board, int square);
 
