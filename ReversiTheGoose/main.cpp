@@ -5,9 +5,7 @@
 #include <iostream>
 #include <ctime>
 #include "bitboard.h"
-
-
-using namespace std;
+#include "Reversi.h"
 
 int main()
 {
@@ -22,11 +20,7 @@ int main()
 
     std::cout << "All the tables have been loaded\n";
 
-    bitboard::InitFlipMaskTable();
-    while (true) {
-        int a;
-        int b;
-        std::cin >> a >> b;
-        bitboard::PrintBoard(bitboard::kFlipMaskTable[a][b]);
-    }
+
+    Reversi reversi;
+    reversi.PrintBoard();
 }
