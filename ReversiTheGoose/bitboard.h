@@ -37,6 +37,7 @@ namespace bitboard
     extern U64 kRFCrossMaskTable[kGridNum]; //horizontal vertical cross
     extern U64 kDCrossMaskTable[kGridNum]; //diagonal cross
     extern U64 kCrossMaskTable[kGridNum]; // combined cross
+    extern U64 kFlipMaskTable[kGridNum][kGridNum]; //flip table [srce][dest]
 
 
 
@@ -60,5 +61,6 @@ namespace bitboard
 
     void InitMaskTable();
     void InitAttackTable();
+    void InitFlipMaskTable();
 }
 
