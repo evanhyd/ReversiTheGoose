@@ -356,11 +356,12 @@ void bitboard::InitFlipMaskTable()
                     //shift the map to the correct starting file, then the correct starting rank
                     flip_board >>= kFileNum - srce_file;
                     flip_board <<= 8 * (srce_rank + 1);
-
                 }
+
+                kFlipMaskTable[srce][dest] = flip_board;
+
             }
 
-            kFlipMaskTable[srce][dest] = flip_board;
 
         }
     }
