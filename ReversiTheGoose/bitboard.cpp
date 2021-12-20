@@ -9,10 +9,10 @@ U64 bitboard::kAntiDiagonalMaskTable[kGridNum] = { 0 };
 U64 bitboard::kRFCrossMaskTable[kGridNum] = { 0 };
 U64 bitboard::kDCrossMaskTable[kGridNum] = { 0 };
 U64 bitboard::kCrossMaskTable[kGridNum] = { 0 };
+U64 bitboard::kFlipMaskTable[kGridNum][kGridNum] = { {0} };
 
-
-U64 bitboard::kRFAttackTable[kGridNum][1 << 16] = { 0 };
-U64 bitboard::kDAttackTable[kGridNum][1 << 16] = { 0 };
+U64 bitboard::kRFAttackTable[kGridNum][1 << 16] = { {0} };
+U64 bitboard::kDAttackTable[kGridNum][1 << 16] = { {0} };
 
 
 void bitboard::PrintBoard(U64 board)
@@ -30,6 +30,11 @@ void bitboard::PrintBoard(U64 board)
     std::cout << '\n';
 }
 
+bool bitboard::GetBit(U64 board, int square)
+{
+    return board >> square & 1;
+}
+
 U64 bitboard::SetBit(U64 board, int square)
 {
     return board | 1ull << square;
@@ -39,8 +44,6 @@ U64 bitboard::ClearBit(U64 board, int square)
 {
     return board & ~(1ull << square);
 }
-
-
 
 int bitboard::SquareToRank(int square)
 {
@@ -279,5 +282,86 @@ void bitboard::InitAttackTable()
             }
         }
 
+    }
+}
+
+void bitboard::InitFlipMaskTable()
+{
+    for (int srce = 0; srce < kGridNum; ++srce) {
+        for (int dest = 0; dest < kGridNum; ++dest) {
+
+            U64 flip_board = 0;
+
+            //save time for duplicate values
+            if (dest < srce) {
+                kFlipMaskTable[srce][dest] = kFlipMaskTable[dest][srce];
+            }
+            else {
+
+                //find the rank and file values
+                int srce_rank = srce >> 3;
+                int srce_file = srce & 7;
+                int dest_rank = dest >> 3;
+                int dest_file = dest & 7;
+
+                //mask for when they are vertically aligned (file is the same)
+                if (srce_file == dest_file && dest_rank - srce_rank >= 2) {
+
+                    //loop through the positions inbetween srce and dest and add them to the map
+                    for (int rank = srce_rank + 1; rank < dest_rank; ++rank) {
+                        flip_board <<= 8;
+                        flip_board |= 1ull;
+                    }
+
+                    //shift the map to the correct starting file, then the correct starting rank
+                    flip_board <<= srce_file;
+                    flip_board <<= 8 * (srce_rank + 1);
+
+                //mask for when they are horizontally aligned (rank is the same)
+                } else if (srce_rank == dest_rank && dest_file - srce_file >= 2) {
+
+                    //loop through the positions inbetween srce and dest and add them to the map
+                    for (int file = srce_file + 1; file < dest_file; ++file) {
+                        flip_board <<= 1;
+                        flip_board |= 1ull;
+                    }
+
+                    //shift the map to the correct starting file, then the correct starting rank
+                    flip_board <<= srce_file + 1;
+                    flip_board <<= 8 * srce_rank;
+
+
+                //mask for main diagonal
+                } else if (dest_rank - srce_rank == dest_file - srce_file) {
+
+                    //loop through the positions between srce and dest and add them to the map
+                    for (int pos = srce_file + 1; pos < dest_file; ++pos) {
+                        flip_board <<= 9;
+                        flip_board |= 1ull;
+                    }
+
+                    //shift the map to the correct starting file, then the correct starting rank
+                    flip_board <<= srce_file + 1;
+                    flip_board <<= 8 * (srce_rank + 1);
+
+                //mask for anti-diagonal
+                } else if (dest_rank + dest_file == srce_rank + srce_file) {
+
+                    //loop through the positions between srce and dest and add them to the map
+                    for (int pos = dest_file + 1; pos < srce_file; ++pos) {
+                        flip_board |= 1ull; 
+                        flip_board <<= 7;
+                    }
+
+                    //shift the map to the correct starting file, then the correct starting rank
+                    flip_board >>= kFileNum - srce_file;
+                    flip_board <<= 8 * (srce_rank + 1);
+
+                }
+            }
+
+            kFlipMaskTable[srce][dest] = flip_board;
+
+        }
     }
 }

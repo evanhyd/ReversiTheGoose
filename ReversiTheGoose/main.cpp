@@ -22,5 +22,11 @@ int main()
 
     std::cout << "All the tables have been loaded\n";
 
-
+    bitboard::InitFlipMaskTable();
+    while (true) {
+        int a;
+        int b;
+        std::cin >> a >> b;
+        bitboard::PrintBoard(bitboard::kFlipMaskTable[a][b]);
+    }
 }
