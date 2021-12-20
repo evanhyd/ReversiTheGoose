@@ -4,8 +4,10 @@
 
 #include <iostream>
 #include <ctime>
+#include <cassert>
 #include "bitboard.h"
 #include "Reversi.h"
+
 
 int main()
 {
@@ -22,5 +24,5 @@ int main()
 
 
     Reversi reversi;
-    reversi.PrintBoard();
+    reversi.Print();
 }

@@ -27,10 +27,10 @@ void Reversi::Flip(int square)
 
     //apply flip masks
 
-    //add to the history
+    //add to the history and increment the counter
 }
 
-void Reversi::PrintBoard()
+void Reversi::Print()
 {
     std::cout << "-------------------\n";
 
@@ -40,13 +40,16 @@ void Reversi::PrintBoard()
         for (int file = 0; file < bitboard::kFileNum; ++file)
         {
             int square = rank * 8 + file;
-            if (bitboard::GetBit(this->boards_[kBlack], square)) std::cout << ' ' <<'O';
-            else if (bitboard::GetBit(this->boards_[kWhite], square)) std::cout << ' ' << '=';
+            if (bitboard::IsSetBit(this->boards_[kBlack], square)) std::cout << ' ' <<'O';
+            else if (bitboard::IsSetBit(this->boards_[kWhite], square)) std::cout << ' ' << char(254);
             else std::cout << " .";
         }
         std::cout << " |\n";
     }
 
     std::cout << "-------------------\n";
+
+    std::cout << "Black: " << bitboard::CountSetBit(this->boards_[kBlack]) << '\n';
+    std::cout << "White: " << bitboard::CountSetBit(this->boards_[kWhite]) << "\n\n";
 }
 

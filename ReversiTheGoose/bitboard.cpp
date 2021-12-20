@@ -1,6 +1,6 @@
 #include "bitboard.h"
 #include <iostream>
-
+#include <bitset>
 
 U64 bitboard::kRankMaskTable[kGridNum] = { 0 };
 U64 bitboard::kFileMaskTable[kGridNum] = { 0 };
@@ -30,7 +30,7 @@ void bitboard::PrintBoard(U64 board)
     std::cout << '\n';
 }
 
-bool bitboard::GetBit(U64 board, int square)
+bool bitboard::IsSetBit(U64 board, int square)
 {
     return board >> square & 1;
 }
@@ -43,6 +43,11 @@ U64 bitboard::SetBit(U64 board, int square)
 U64 bitboard::ClearBit(U64 board, int square)
 {
     return board & ~(1ull << square);
+}
+
+int bitboard::CountSetBit(U64 board)
+{
+    return std::popcount(board);
 }
 
 int bitboard::SquareToRank(int square)
@@ -285,7 +290,7 @@ void bitboard::InitAttackTable()
     }
 }
 
-void bitboard::InitFlipMaskTable()
+void bitboard::InitFlipTable()
 {
     for (int srce = 0; srce < kGridNum; ++srce) {
         for (int dest = 0; dest < kGridNum; ++dest) {
