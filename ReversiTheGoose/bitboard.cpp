@@ -40,6 +40,11 @@ U64 bitboard::SetBit(U64 board, int square)
     return board | 1ull << square;
 }
 
+U64 bitboard::FlipBit(U64 board, int square)
+{
+    return board ^ 1ull << square;
+}
+
 U64 bitboard::ClearBit(U64 board, int square)
 {
     return board & ~(1ull << square);
@@ -68,6 +73,15 @@ U64 bitboard::HashByRFCross(U64 board, int square)
         (((board >> SquareToFile(square) & kFirstFileMask) * kMainDiagonalMask) >> 56 << 8);
 }
 
+U64 bitboard::UnhashByRFCross(U64 hash, int square)
+{
+    int rank = SquareToRank(square);
+    int file = SquareToFile(square);
+    U64 horizontal = hash & (0b11111111);
+    U64 vertical = hash >> 8 & (0b11111111);
+    return (horizontal << (rank * 8)) | (((vertical * kMainDiagonalMask) & kLastFileMask) >> (7 - file));
+}
+
 U64 bitboard::HashByDCross(U64 board, int square)
 {
     return
@@ -75,7 +89,12 @@ U64 bitboard::HashByDCross(U64 board, int square)
         (((board & kAntiDiagonalMaskTable[square]) * kFirstFileMask) >> 56 << 8);
 }
 
-
+U64 bitboard::UnhashByDCross(U64 hash, int square)
+{
+    U64 diagonal = hash & (0b11111111);
+    U64 anti_diagonal = hash >> 8 & (0b11111111);
+    return ((diagonal * kFirstFileMask) & kDiagonalMaskTable[square]) | ((anti_diagonal * kFirstFileMask) & kAntiDiagonalMaskTable[square]);
+}
 
 void bitboard::InitMaskTable()
 {
@@ -157,29 +176,29 @@ void bitboard::InitMaskTable()
     //transposition table
 }
 
-
+//returns the 8x8 board with all attack squares in it
 U64 bitboard::GetAttackBoard(U64 board, int square)
 {
     return kRFAttackTable[square][HashByRFCross(board, square)] | kDAttackTable[square][HashByDCross(board, square)];
 }
 
-
+//initializes the two attack tables (Rank+File and Diagonals), where the index is the 16 bit hash and the value is the 8x8 board with the attack pieces in them
 void bitboard::InitAttackTable()
 {
-    for (int square = 0; square < kGridNum; ++square)
+    for (int square = 0; square < kGridNum; ++square) 
     {
         int rank = SquareToRank(square);
         int file = SquareToFile(square);
 
-        for (U64 horizontal = 0; horizontal < (1ull << 8); ++horizontal)
+        for (U64 horizontal = 0; horizontal < (1ull << 8); ++horizontal) //right now there are 4 times as many tables as needed because the horizontal and vertical values at the target square's position don't matter.
         {
             for (U64 vertical = 0; vertical < (1ull << 8); ++vertical)
             {
                 //0 is empty, 1 is occupied
-                U64 enemy_board = (horizontal << (rank * 8)) | (((vertical * kMainDiagonalMask) & kLastFileMask) >> (7 - file));
+                U64 hash = horizontal | (vertical << 8);
+                U64 enemy_board = UnhashByRFCross(hash, square);
                 U64 attack_board = 0;
-
-
+                
                 //check attack square for up
                 for (int x = rank - 1, dist = 0; x >= 0; --x, ++dist)
                 {
@@ -228,7 +247,7 @@ void bitboard::InitAttackTable()
                     }
                 }
 
-                kRFAttackTable[square][horizontal | vertical << 8] = attack_board;
+                kRFAttackTable[square][hash] = attack_board;
             }
         }
 
@@ -236,7 +255,8 @@ void bitboard::InitAttackTable()
         {
             for (U64 anti_diagonal = 0; anti_diagonal < (1ull << 8); ++anti_diagonal)
             {
-                U64 enemy_board = ((diagonal * kFirstFileMask) & kDiagonalMaskTable[square]) | ((anti_diagonal * kFirstFileMask) & kAntiDiagonalMaskTable[square]);
+                U64 hash = diagonal | anti_diagonal << 8;
+                U64 enemy_board = UnhashByDCross(hash, square);
                 U64 attack_board = 0;
 
                 for (int x = rank - 1, y = file - 1, dist = 0; x >= 0 && y >= 0; --x, --y, ++dist)
@@ -283,7 +303,7 @@ void bitboard::InitAttackTable()
                     }
                 }
 
-                kDAttackTable[square][diagonal | anti_diagonal << 8] = attack_board;
+                kDAttackTable[square][hash] = attack_board;
             }
         }
 
@@ -304,10 +324,10 @@ void bitboard::InitFlipTable()
             else {
 
                 //find the rank and file values
-                int srce_rank = srce >> 3;
-                int srce_file = srce & 7;
-                int dest_rank = dest >> 3;
-                int dest_file = dest & 7;
+                int srce_rank = srce >> 3; //SquareToRank(srce_rank)
+                int srce_file = srce & 7; //SquareToFile(srce_rank)
+                int dest_rank = dest >> 3; //SquareToRank(dest_rank)
+                int dest_file = dest & 7; //SquareToRank(dest_file)
 
                 //mask for when they are vertically aligned (file is the same)
                 if (srce_file == dest_file && dest_rank - srce_rank >= 2) {
@@ -361,12 +381,11 @@ void bitboard::InitFlipTable()
                     //shift the map to the correct starting file, then the correct starting rank
                     flip_board >>= kFileNum - srce_file;
                     flip_board <<= 8 * (srce_rank + 1);
-
                 }
+
+                kFlipMaskTable[srce][dest] = flip_board;
+
             }
-
-            kFlipMaskTable[srce][dest] = flip_board;
-
         }
     }
 }
