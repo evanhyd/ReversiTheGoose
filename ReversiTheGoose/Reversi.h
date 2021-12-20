@@ -22,8 +22,10 @@ public:
     Reversi();
 
     void Start();
+    void Train();
     void Flip(int square);
-    void PrintBoard();
+    //double Evaluate();
+    void Print();
 
 };
 

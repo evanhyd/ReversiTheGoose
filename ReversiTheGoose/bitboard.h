@@ -37,8 +37,6 @@ namespace bitboard
     extern U64 kRFCrossMaskTable[kGridNum]; //horizontal vertical cross
     extern U64 kDCrossMaskTable[kGridNum]; //diagonal cross
     extern U64 kCrossMaskTable[kGridNum]; // combined cross
-    extern U64 kFlipMaskTable[kGridNum][kGridNum]; //flip table [srce][dest]
-
 
 
     //precalculated attack table
@@ -46,13 +44,17 @@ namespace bitboard
     extern U64 kDAttackTable[kGridNum][1 << 16]; //anti/diagonal attack table
 
 
+    //precalculated flip table
+    extern U64 kFlipMaskTable[kGridNum][kGridNum]; //[srce][dest]
 
-    void PrintBoard(U64 board);
+
     int SquareToRank(int square);
     int SquareToFile(int square);
-    bool GetBit(U64 board, int square);
+    bool IsSetBit(U64 board, int square);
     U64 SetBit(U64 board, int square);
     U64 ClearBit(U64 board, int square);
+    int CountSetBit(U64 board);
+    void PrintBoard(U64 board);
 
     U64 HashByRFCross(U64 board, int square);
     U64 HashByDCross(U64 board, int square);
@@ -61,6 +63,6 @@ namespace bitboard
 
     void InitMaskTable();
     void InitAttackTable();
-    void InitFlipMaskTable();
+    void InitFlipTable();
 }
 
