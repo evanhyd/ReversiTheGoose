@@ -30,6 +30,11 @@ void bitboard::PrintBoard(U64 board)
     std::cout << '\n';
 }
 
+bool bitboard::GetBit(U64 board, int square)
+{
+    return board >> square & 1;
+}
+
 U64 bitboard::SetBit(U64 board, int square)
 {
     return board | 1ull << square;

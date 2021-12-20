@@ -5,9 +5,7 @@
 #include <iostream>
 #include <ctime>
 #include "bitboard.h"
-
-
-using namespace std;
+#include "Reversi.h"
 
 int main()
 {
@@ -22,5 +20,11 @@ int main()
 
     std::cout << "All the tables have been loaded\n";
 
+    for (unsigned char a = 0; a < 255; ++a)
+    {
+        std::cout << a << '\n';
+    }
 
+    Reversi reversi;
+    reversi.PrintBoard();
 }

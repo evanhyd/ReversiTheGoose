@@ -1,15 +1,29 @@
 #pragma once
-#include "Bitboard.h"
-
+#include "bitboard.h"
+#include <iostream>
 
 class Reversi
 {
-    enum Player
+    enum Player : int
     {
         kBlack,
-        kWhite
+        kWhite,
+        kBoth
     };
 
-    U64 board[3]; //black, white, both
+    U64 boards_[3]; //black, white, both
+    bool turn_;
+
+    std::pair<U64, U64> history_[64];
+    int move_;
+
+public:
+
+    Reversi();
+
+    void Start();
+    void Flip(int square);
+    void PrintBoard();
+
 };
 
