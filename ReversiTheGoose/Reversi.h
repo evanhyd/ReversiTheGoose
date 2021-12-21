@@ -26,15 +26,15 @@ public:
     U64 GetLegalMove();
     bool Human();
     bool Engine();
-    double Search();//engine
+    double Search(int max_depth, double alpha, double beta);
+    long long Perft(int max_depth, bool passed);
+    double Evaluate();
 
-
-    //int Perft();//engine benchmark
 
 
     void Flip(int square);
+    void Pass();
     void TakeBack();
-    //double Evaluate();
     void Print();
 
 };

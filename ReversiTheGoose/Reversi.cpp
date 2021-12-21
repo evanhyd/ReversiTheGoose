@@ -99,12 +99,62 @@ bool Reversi::Engine()
     if (attackable_square == 0) return false;
 
     int best_move = -1;
-    Search(8);
+    return false;
+    //Search(8);
 }
 
-double Reversi::Search(int depth)
+double Reversi::Search(int max_depth, double alpha, double beta)
 {
-    if(depth == 0) return 
+    if (max_depth == 0) return 0.0;
+    return 0.0;
+}
+
+
+long long Reversi::Perft(int max_depth, bool passed)
+{
+    if (max_depth == 0) return 1;
+
+    long long node = 0;
+
+    U64 attackable_square = this->GetLegalMove();
+
+    //run out of move
+    if (attackable_square == 0)
+    {
+        //continue if opponent did not pass before
+        if (!passed)
+        {
+            this->Pass();
+            node += Perft(max_depth - 1, true);
+            this->TakeBack();
+        }
+
+        //game over
+        else return 1;
+    }
+
+    while (attackable_square != 0)
+    {
+        int square = bitboard::GetLSTSetBit(attackable_square);
+
+        this->Flip(square);
+        node += Perft(max_depth - 1, false);
+        this->TakeBack();
+
+        attackable_square = bitboard::PopBit(attackable_square);
+    }
+
+    return node;
+}
+
+
+double Reversi::Evaluate()
+{
+    //we will replace this will neural network eval later
+    //this is just a simple evaluation functiono to prove the concept
+
+    double score = bitboard::CountSetBit(boards_[kBlack]) - bitboard::CountSetBit(boards_[kWhite]);
+    return (turn_ == kBlack ? score : -score);
 }
 
 
@@ -131,6 +181,13 @@ void Reversi::Flip(int square)
 
     //update occupancy board and player turn
     boards_[kBoth] = boards_[kBlack] | boards_[kWhite];
+    turn_ = !turn_;
+}
+
+void Reversi::Pass()
+{
+    //save the old history
+    history_[move_++] = { boards_[kBlack], boards_[kWhite] };
     turn_ = !turn_;
 }
 
