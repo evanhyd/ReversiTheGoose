@@ -102,6 +102,8 @@ bool Reversi::Engine()
     Search(8, 8, -99999999.9, 99999999.9, false, best_move);
 
     this->Flip(best_move);
+
+    std::cout << "Engine Played: " << bitboard::SquareToRank(best_move) << ' ' << bitboard::SquareToFile(best_move) << '\n';
 }
 
 double Reversi::Search(const int kMaxDepth, int depth, double alpha, double beta, bool passed, int& best_move)
