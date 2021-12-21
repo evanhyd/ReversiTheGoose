@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <ctime>
+#include <chrono>
 #include <cassert>
 #include "bitboard.h"
 #include "Reversi.h"
@@ -16,13 +17,22 @@ int main()
     std::cout << "Initializing Mask Table\n";
     bitboard::InitMaskTable();
 
-
     std::cout << "Initializing Attack Table\n";
     bitboard::InitAttackTable();
 
-    std::cout << "All the tables have been loaded\n";
+    std::cout << "Initializing Flip Table\n";
+    bitboard::InitFlipTable();
+
+    std::cout << "All the tables have been loaded"<<std::endl;
 
 
-    Reversi reversi;
-    reversi.Print();
+
+    srand(time(NULL));
+    //U64 board = U64(rand()) << 48 | U64(rand()) << 32 | U64(rand()) << 16 | U64(rand());
+
+    Reversi game;
+    game.Start();
+    
+    
 }
+

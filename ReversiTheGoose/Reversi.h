@@ -22,8 +22,13 @@ public:
     Reversi();
 
     void Start();
-    void Train();
+
+    bool Play(); //human play
+    bool Search();//engine serach line
+    //int Perft();//engine benchmark
+
     void Flip(int square);
+    void TakeBack();
     //double Evaluate();
     void Print();
 

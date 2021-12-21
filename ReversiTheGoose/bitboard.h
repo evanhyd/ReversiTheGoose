@@ -16,9 +16,9 @@ namespace bitboard
         A8, B8, C8, D8, E8, F8, G8, H8
     };
 
-    constexpr int kRankNum = 8;
-    constexpr int kFileNum = 8;
-    constexpr int kGridNum = kRankNum * kFileNum;
+    constexpr int kRankLength = 8;
+    constexpr int kFileLength = 8;
+    constexpr int kGridNum = kRankLength * kFileLength;
 
     //compiled time mask
     constexpr U64 kFirstRankMask = 0b11111111;
@@ -54,15 +54,22 @@ namespace bitboard
     U64 SetBit(U64 board, int square);
     U64 FlipBit(U64 board, int square);
     U64 ClearBit(U64 board, int square);
-    int CountSetBit(U64 board);
+    U64 PopBit(U64 board);
+    int CountSetBit(U64 board); //use this one
+    int GetLSTSetBit(U64 board);
+    int GetLSTSetBit_STD(U64 board);
+    int GetLSTSetBit_MSVC(U64 board);
+    void GetLSTSetBit_AMD(unsigned long* res, U64 board);
     void PrintBoard(U64 board);
 
+
     U64 HashByRFCross(U64 board, int square);
-    U64 UnhashByRFCross(U64 hash, int square);
     U64 HashByDCross(U64 board, int square);
+    U64 UnhashByRFCross(U64 hash, int square);
     U64 UnhashByDCross(U64 hash, int square);
 
-    U64 GetAttackBoard(U64 board, int square);
+    U64 GetAttackBoard(U64 enemy_board, int square);
+    U64 FlipBoard(U64 board, int srce, int dest);
 
     void InitMaskTable();
     void InitAttackTable();
