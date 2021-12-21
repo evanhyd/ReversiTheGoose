@@ -27,12 +27,12 @@ int main()
 
 
 
-    srand(time(NULL));
-    //U64 board = U64(rand()) << 48 | U64(rand()) << 32 | U64(rand()) << 16 | U64(rand());
+    //srand(time(NULL));
+    //U64 board = U64(rand()) << 48 | U64(rand()) << 32 | U64(rand()) << 16;// | U64(rand());
+
 
     Reversi game;
     game.Start();
-    
     
 }
 

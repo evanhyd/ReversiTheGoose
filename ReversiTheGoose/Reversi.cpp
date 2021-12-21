@@ -123,9 +123,9 @@ void Reversi::Flip(int square)
 
 void Reversi::TakeBack()
 {
+    --move_;
     boards_[kBlack] = history_[move_].first;
     boards_[kWhite] = history_[move_].second;
-    --move_;
 
     boards_[kBoth] = boards_[kBlack] | boards_[kWhite];
     turn_ = !turn_;
@@ -142,8 +142,8 @@ void Reversi::Print()
         for (int file = 0; file < bitboard::kFileLength; ++file)
         {
             int square = rank * 8 + file;
-            if (bitboard::IsSetBit(boards_[kBlack], square)) std::cout << ' ' << 'O';
-            else if (bitboard::IsSetBit(boards_[kWhite], square)) std::cout << ' ' << 'X';
+            if (bitboard::IsSetBit(boards_[kBlack], square)) std::cout << ' ' << 'X';
+            else if (bitboard::IsSetBit(boards_[kWhite], square)) std::cout << ' ' << 'O';
             else std::cout << " .";
         }
         std::cout << " |\n";
