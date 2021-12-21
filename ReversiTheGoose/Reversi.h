@@ -26,7 +26,7 @@ public:
     U64 GetLegalMove();
     bool Human();
     bool Engine();
-    double Search(int max_depth, double alpha, double beta);
+    double Search(const int kMaxDepth, int depth, double alpha, double beta, bool passed, int& best_move);
     long long Perft(int max_depth, bool passed);
     double Evaluate();
 

@@ -99,14 +99,60 @@ bool Reversi::Engine()
     if (attackable_square == 0) return false;
 
     int best_move = -1;
-    return false;
-    //Search(8);
+    Search(8, 8, -99999999.9, 99999999.9, false, best_move);
+
+    this->Flip(best_move);
 }
 
-double Reversi::Search(int max_depth, double alpha, double beta)
+double Reversi::Search(const int kMaxDepth, int depth, double alpha, double beta, bool passed, int& best_move)
 {
-    if (max_depth == 0) return 0.0;
-    return 0.0;
+    if (depth == 0) return this->Evaluate();
+
+    U64 attackable_square = this->GetLegalMove();
+
+    
+    double score = -99999999.9;
+
+    //run out of move
+    if (attackable_square == 0)
+    {
+        //continue if opponent did not pass before
+        if (!passed)
+        {
+            this->Pass();
+            score = std::max(score, -Search(kMaxDepth, depth - 1, -beta, -alpha, true, best_move));
+            this->TakeBack();
+
+            if (score > beta) return beta;
+            if (score > alpha) alpha = score;
+        }
+
+        //game over
+        else return this->Evaluate();
+    }
+    
+
+    while (attackable_square != 0)
+    {
+        int square = bitboard::GetLSTSetBit(attackable_square);
+
+        this->Flip(square);
+        score = std::max(score, -Search(kMaxDepth, depth - 1, -beta, -alpha, false, best_move));
+        this->TakeBack();
+
+        //update alpha beta
+        if (score > beta) return beta;
+        if (score > alpha)
+        {
+            alpha = score;
+            if (depth == kMaxDepth) best_move = square;
+        }
+
+
+        attackable_square = bitboard::PopBit(attackable_square);
+    }
+
+    return alpha;
 }
 
 
