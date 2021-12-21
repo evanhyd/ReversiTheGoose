@@ -24,19 +24,14 @@ void Reversi::Start()
 
     while (true)
     {
+        U64 attackable_square = this->GetLegalMove();
+        if (attackable_square == 0) break;
+
         this->Print();
         std::cout << (turn_ == kBlack ? "Black" : "White") << "'s turn\n";
 
-        if (player_mode[turn_] == 0)
-        {
-            bool has_good_move = this->Play();
-            if (!has_good_move) break;
-        }
-        else
-        {
-            bool has_good_move = this->Search();
-            if (!has_good_move) break;
-        }
+        if (player_mode[turn_] == 0) this->Human();
+        else this->Engine();
     }
 
     int black_score = bitboard::CountSetBit(boards_[kBlack]);
@@ -48,50 +43,68 @@ void Reversi::Start()
 }
 
 
-bool Reversi::Play()
+U64 Reversi::GetLegalMove()
 {
-    bool attackable_square[bitboard::kGridNum] = { false };
-
-    bool has_legal_move = false;
+    U64 legal_moves = 0;
     for (U64 ally_board = boards_[turn_]; ally_board != 0; ally_board = bitboard::PopBit(ally_board))
     {
         int srce_square = bitboard::GetLSTSetBit(ally_board);
 
-        for (U64 attack_board = bitboard::GetAttackBoard(boards_[!turn_], srce_square) & ~boards_[turn_]; attack_board; attack_board = bitboard::PopBit(attack_board))
-        {
-            int attack_square = bitboard::GetLSTSetBit(attack_board);
-            attackable_square[attack_square] = true;
-            has_legal_move = true;
-        }
+        //get the attack mask
+        legal_moves |= bitboard::GetAttackBoard(boards_[!turn_], srce_square);
+
+        //filter out ally occupied square
+        legal_moves &= ~boards_[turn_];
     }
 
-    if (!has_legal_move) return false;
+    return legal_moves;
+}
 
+
+bool Reversi::Human()
+{
+    U64 attackable_square = this->GetLegalMove();
+    
     while (true)
     {
         std::cout << "Coordinate: ";
-        int rank, file, square;
-        std::cin >> rank >> file;
-        square = rank * bitboard::kRankLength + file;
+        
+        int rank, file;
+ 
+        if (std::cin >> rank >> file)
+        {
+            int square = rank * bitboard::kRankLength + file;
 
-        if (0 <= square && square < bitboard::kGridNum && attackable_square[square])
-        {
-            this->Flip(square);
-            break;
+            if (0 <= square && square < bitboard::kGridNum)
+            {
+                if (bitboard::IsSetBit(attackable_square, square))
+                {
+                    this->Flip(square);
+                    break;
+                }
+            }
         }
-        else
-        {
-            std::cout << "Invalid attacking square\n";
-        }
+
+        std::cout << "Invalid attacking square\n";
     }
 
     return true;
 }
 
 
-bool Reversi::Search()
+
+bool Reversi::Engine()
 {
-    return false;
+    U64 attackable_square = this->GetLegalMove();
+    if (attackable_square == 0) return false;
+
+    int best_move = -1;
+    Search(8);
+}
+
+double Reversi::Search(int depth)
+{
+    if(depth == 0) return 
 }
 
 
@@ -99,7 +112,7 @@ bool Reversi::Search()
 void Reversi::Flip(int square)
 {
     //save the old history
-    history_[move_++] = std::make_pair(boards_[kBlack], boards_[kWhite]);
+    history_[move_++] = { boards_[kBlack], boards_[kWhite] };
 
     //flip the srce square
     boards_[turn_] = bitboard::FlipBit(boards_[turn_], square);

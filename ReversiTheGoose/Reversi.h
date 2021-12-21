@@ -23,9 +23,14 @@ public:
 
     void Start();
 
-    bool Play(); //human play
-    bool Search();//engine serach line
+    U64 GetLegalMove();
+    bool Human();
+    bool Engine();
+    double Search();//engine
+
+
     //int Perft();//engine benchmark
+
 
     void Flip(int square);
     void TakeBack();
