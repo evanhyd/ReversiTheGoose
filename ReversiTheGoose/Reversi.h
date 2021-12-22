@@ -1,6 +1,7 @@
 #pragma once
 #include "bitboard.h"
 #include <iostream>
+#include <mutex>
 
 class Reversi
 {
@@ -30,6 +31,7 @@ public:
     void Print();
 
     static long long Perft(int depth, Reversi& game);
+    static void PerftMulti(int kMaxDepth, int depth, Reversi game, long long& nodes);
     static double Search(const int kMaxDepth, int depth, double alpha, double beta, Reversi& game, int& best_move);
 };
 

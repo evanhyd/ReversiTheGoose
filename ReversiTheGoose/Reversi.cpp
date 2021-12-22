@@ -192,13 +192,14 @@ void Reversi::Print()
     11       212258800
     12      1939886636
 
-    nearly 20 millions nodes/s
+    single thread 20 millions nodes/s
+    multi thread 
 */
 long long Reversi::Perft(int depth, Reversi& game)
 {
     if (depth == 0) return 1;
 
-    long long node = 0;
+    long long nodes = 0;
 
     //get legal moves
     U64 attackable_square = game.GetLegalMove();
@@ -209,7 +210,7 @@ long long Reversi::Perft(int depth, Reversi& game)
         {
             Reversi child = game;
             child.Pass();
-            node += Perft(depth - 1, child);
+            nodes += Perft(depth - 1, child);
         }
 
         //game over
@@ -223,13 +224,91 @@ long long Reversi::Perft(int depth, Reversi& game)
 
         Reversi child = game;
         child.Flip(square);
-        node += Perft(depth - 1, child);
+        nodes += Perft(depth - 1, child);
 
         attackable_square = bitboard::PopBit(attackable_square);
     }
 
-    return node;
+    return nodes;
 }
+
+
+
+
+void Reversi::PerftMulti(int kMaxDepth, int depth, Reversi game, long long& nodes)
+{
+    if (depth == 0)
+    {
+        nodes += 1;
+        return;
+    }
+
+
+    //get legal moves
+    U64 attackable_square = game.GetLegalMove();
+    if (attackable_square == 0)
+    {
+        //continue if opponent did not pass before
+        if (!game.passed_)
+        {
+            Reversi child = game;
+            child.Pass();
+            PerftMulti(kMaxDepth, depth - 1, child, nodes);
+        }
+
+        //game over
+        else
+        {
+            nodes += 1;
+            return;
+        }
+    }
+
+
+    if (kMaxDepth - depth >= 2) //change the number here to increase the threads
+    {
+        while (attackable_square != 0)
+        {
+            int square = bitboard::GetLSTSetBit(attackable_square);
+
+            Reversi child = game;
+            child.Flip(square);
+            PerftMulti(kMaxDepth, depth - 1, child, nodes);
+
+            attackable_square = bitboard::PopBit(attackable_square);
+        }
+    }
+    else
+    {
+        std::vector<std::thread> ths;
+        ths.reserve(8);
+        long long counts[8] = { 0 };
+        
+        int ths_counter = 0;
+        while (attackable_square != 0)
+        {
+            int square = bitboard::GetLSTSetBit(attackable_square);
+
+            Reversi child = game;
+            child.Flip(square);
+
+            ths.emplace_back(&Reversi::PerftMulti, kMaxDepth, depth - 1, child, std::ref(counts[ths_counter++]));
+
+            attackable_square = bitboard::PopBit(attackable_square);
+        }
+
+        for (auto& th : ths)
+        {
+            th.join();
+        }
+
+        for (int j = 0; j < 8; ++j)
+        {
+            nodes += counts[j];
+        }
+    }
+}
+
 
 double Reversi::Search(const int kMaxDepth, int depth, double alpha, double beta, Reversi& game, int& best_move)
 {
