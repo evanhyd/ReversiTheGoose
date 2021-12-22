@@ -38,7 +38,7 @@ int main()
     std::cin >> depth;
 
     auto begin = std::chrono::high_resolution_clock::now();
-    int node = game.Perft(depth, false);
+    int node = Reversi::Perft(depth, game);
     auto end = std::chrono::high_resolution_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
 

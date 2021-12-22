@@ -7,35 +7,29 @@ class Reversi
     enum Player : int
     {
         kBlack,
-        kWhite,
-        kBoth
+        kWhite
     };
 
-    U64 boards_[3]; //black, white, both
+    U64 boards_[2]; //black, white
     bool turn_;
-
-    std::pair<U64, U64> history_[64];
-    int move_;
+    bool passed_;
 
 public:
 
     Reversi();
 
     void Start();
-
-    U64 GetLegalMove();
     bool Human();
     bool Engine();
-    double Search(const int kMaxDepth, int depth, double alpha, double beta, bool passed, int& best_move);
-    long long Perft(int max_depth, bool passed);
-    double Evaluate();
 
 
-
+    U64 GetLegalMove();
     void Flip(int square);
     void Pass();
-    void TakeBack();
+    double Evaluate();
     void Print();
 
+    static long long Perft(int depth, Reversi& game);
+    static double Search(const int kMaxDepth, int depth, double alpha, double beta, Reversi& game, int& best_move);
 };
 
