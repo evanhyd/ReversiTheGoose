@@ -27,22 +27,21 @@ int main()
 
 
 
-    //srand(time(NULL));
-    //U64 board = U64(rand()) << 48 | U64(rand()) << 32 | U64(rand()) << 16;// | U64(rand());
+    srand(time(NULL));
+    U64 board = U64(rand()) << 48 | U64(rand()) << 32 | U64(rand()) << 16 | U64(rand());
 
 
     Reversi game;
-    game.Start();
+    //game.Start();
 
-    //int depth;
-    //std::cin >> depth;
+    int depth;
+    std::cin >> depth;
 
-    //auto begin = std::chrono::high_resolution_clock::now();
-    //int node = game.Perft(depth, false);
-    //auto end = std::chrono::high_resolution_clock::now();
-    //auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
+    auto begin = std::chrono::high_resolution_clock::now();
+    int node = game.Perft(depth, false);
+    auto end = std::chrono::high_resolution_clock::now();
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
 
-    //std::cout << "Perft depth " << depth << ": " << node << " nodes in " << elapsed.count() << " ms (" << node / elapsed.count() << "knode/s)\n";
-  
+    std::cout << "Perft depth " << depth << ": " << node << " nodes in " << elapsed.count() << " ms (" << node / elapsed.count() << "knode/s)\n";
 }
 

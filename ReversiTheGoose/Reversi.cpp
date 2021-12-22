@@ -1,5 +1,5 @@
 #include "Reversi.h"
-
+#include <cassert>
 
 Reversi::Reversi() : boards_(), turn_(kBlack), history_(), move_(0)
 {
@@ -24,6 +24,9 @@ void Reversi::Start()
 
     while (true)
     {
+        //check board corruption
+        assert((boards_[kBlack] & boards_[kWhite]) == 0);
+
         U64 attackable_square = this->GetLegalMove();
         if (attackable_square == 0) break;
 
@@ -50,12 +53,12 @@ U64 Reversi::GetLegalMove()
     {
         int srce_square = bitboard::GetLSTSetBit(ally_board);
 
-        //get the attack mask
+        //get the attack mask + filter out ally occupied square
         legal_moves |= bitboard::GetAttackBoard(boards_[!turn_], srce_square);
-
-        //filter out ally occupied square
-        legal_moves &= ~boards_[turn_];
     }
+
+    //filter out ally occupied square
+    legal_moves &= ~boards_[turn_];
 
     return legal_moves;
 }
@@ -64,10 +67,11 @@ U64 Reversi::GetLegalMove()
 bool Reversi::Human()
 {
     U64 attackable_square = this->GetLegalMove();
+    bitboard::PrintBoard(attackable_square);
     
     while (true)
     {
-        std::cout << "Coordinate: ";
+        std::cout << "Move: ";
         
         int rank, file;
  
@@ -103,8 +107,9 @@ bool Reversi::Engine()
 
     this->Flip(best_move);
 
-    std::cout << "Engine Played: " << bitboard::SquareToRank(best_move) << ' ' << bitboard::SquareToFile(best_move) << '\n';
+    std::cout << "Move: " << bitboard::SquareToRank(best_move) << ' ' << bitboard::SquareToFile(best_move) << '\n';
 }
+
 
 double Reversi::Search(const int kMaxDepth, int depth, double alpha, double beta, bool passed, int& best_move)
 {
@@ -158,6 +163,23 @@ double Reversi::Search(const int kMaxDepth, int depth, double alpha, double beta
 }
 
 
+
+/*
+    DEPTH   #LEAF NODES
+========================
+     1               4
+     2              12
+     3              56
+     4             244
+     5            1396
+     6            8200
+     7           55092
+     8          390216
+     9         3005288
+    10        24571284
+    11       212258800
+    12      1939886636
+*/
 long long Reversi::Perft(int max_depth, bool passed)
 {
     if (max_depth == 0) return 1;

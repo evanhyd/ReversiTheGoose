@@ -25,15 +25,15 @@ namespace bitboard
     constexpr U64 kLastRankMask = kFirstRankMask << 56;
     constexpr U64 kFirstFileMask = 0x101010101010101;
     constexpr U64 kLastFileMask = kFirstFileMask << 7;
-    constexpr U64 kMainDiagonalMask = 0x102040810204080;
-    constexpr U64 kMainAntiDiagonalMask = 0x8040201008040201;
+    constexpr U64 kMainDiagonalMask = 0x8040201008040201; //up left toward down right
+    constexpr U64 kMainAntiDiagonalMask = 0x102040810204080; //down left toward up right
     
 
     //various mask tables
     extern U64 kRankMaskTable[kGridNum]; //horizontal
     extern U64 kFileMaskTable[kGridNum]; //vertical
-    extern U64 kDiagonalMaskTable[kGridNum]; //diagonal 
-    extern U64 kAntiDiagonalMaskTable[kGridNum]; //anti diagonal
+    extern U64 kDiagonalMaskTable[kGridNum]; //up left toward down right
+    extern U64 kAntiDiagonalMaskTable[kGridNum]; //down left toward up right
     extern U64 kRFCrossMaskTable[kGridNum]; //horizontal vertical cross
     extern U64 kDCrossMaskTable[kGridNum]; //diagonal cross
     extern U64 kCrossMaskTable[kGridNum]; // combined cross

@@ -160,7 +160,7 @@ void bitboard::InitMaskTable()
 {
 
     //initialize rank table
-    U64 rank_mask = 0b11111111;
+    U64 rank_mask = kFirstRankMask;
     for (int rank = 0; rank < kRankLength; ++rank)
     {
         for (int file = 0; file < kFileLength; ++file)
@@ -174,7 +174,7 @@ void bitboard::InitMaskTable()
 
 
     //initialize file table
-    U64 file_mask = 1ull | 1ull << 8 | 1ull << 16 | 1ull << 24 | 1ull << 32 | 1ull << 40 | 1ull << 48 | 1ull << 56;
+    U64 file_mask = kFirstFileMask;
     for (int file = 0; file < kFileLength; ++file)
     {
         for (int rank = 0; rank < kRankLength; ++rank)
@@ -189,34 +189,34 @@ void bitboard::InitMaskTable()
 
     //initialize diagonal table
     constexpr int kMaxLevel = kRankLength + kFileLength - 1;
-    U64 diagonals[kMaxLevel] = { 1 };
+    U64 diagonals[kMaxLevel] = { 1ull << 56 };
     for (int level = 1; level < kMaxLevel; ++level)
     {
-        diagonals[level] = diagonals[level - 1] << 1 & ~kFirstFileMask | diagonals[level - 1] << 8;
+        diagonals[level] = diagonals[level - 1] << 1 & ~kFirstFileMask | diagonals[level - 1] >> 8;
     }
 
     for (int rank = 0; rank < kRankLength; ++rank)
     {
         for (int file = 0; file < kFileLength; ++file)
         {
-            kDiagonalMaskTable[rank * 8 + file] = diagonals[rank + file];
+            kDiagonalMaskTable[rank * 8 + file] = diagonals[kFileLength - 1 - rank + file];
         }
     }
 
 
-    
-    //initialize anti diagonal table
-    U64 anti_diagonals[kMaxLevel] = { 1ull << 56 };
+
+    //initialize anti-diagonal table
+    U64 anti_diagonals[kMaxLevel] = { 1 };
     for (int level = 1; level < kMaxLevel; ++level)
     {
-        anti_diagonals[level] = anti_diagonals[level - 1] << 1 & ~kFirstFileMask | anti_diagonals[level - 1] >> 8;
+        anti_diagonals[level] = anti_diagonals[level - 1] << 1 & ~kFirstFileMask | anti_diagonals[level - 1] << 8;
     }
 
     for (int rank = 0; rank < kRankLength; ++rank)
     {
         for (int file = 0; file < kFileLength; ++file)
         {
-            kAntiDiagonalMaskTable[rank * 8 + file] = anti_diagonals[kFileLength - 1 - rank + file];
+            kAntiDiagonalMaskTable[rank * 8 + file] = anti_diagonals[rank + file];
         }
     }
 
