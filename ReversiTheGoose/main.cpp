@@ -32,19 +32,19 @@ int main()
 
 
     Reversi game;
-    //game.Start();
+    game.Start();
 
-    int depth;
-    std::cin >> depth;
+    //int depth;
+    //std::cin >> depth;
 
-    long long nodes = 0; 
+    //long long nodes = 0; 
 
-    auto begin = std::chrono::high_resolution_clock::now();
-    Reversi::PerftMulti(depth, depth, game, nodes);
-    //nodes = Reversi::Perft(depth, game);
-    auto end = std::chrono::high_resolution_clock::now();
-    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
+    //auto begin = std::chrono::high_resolution_clock::now();
+    //Reversi::MultiPerft(depth, depth, game, nodes);
+    ////nodes = Reversi::Perft(depth, game);
+    //auto end = std::chrono::high_resolution_clock::now();
+    //auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
 
-    std::cout << "Perft depth " << depth << ": " << nodes << " nodes in " << elapsed.count() << " ms (" << nodes / elapsed.count() << " knode/s)\n";
+    //std::cout << "Perft depth " << depth << ": " << nodes << " nodes in " << elapsed.count() << " ms (" << nodes / elapsed.count() << " knode/s)\n";
 }
 
