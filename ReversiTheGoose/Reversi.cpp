@@ -1,4 +1,5 @@
 #include "Reversi.h"
+#include "NeuralNetwork.h"
 #include <cassert>
 #include <thread>
 #include <vector>
@@ -44,7 +45,6 @@ void Reversi::Start()
     else if (black_score < white_score) std::cout << "White has won the game\a\n";
     else std::cout << "Draw!\a\n";
 }
-
 
 
 bool Reversi::Human()
@@ -93,8 +93,6 @@ bool Reversi::Engine()
     std::cout << "Move: " << bitboard::SquareToRank(best_move) << ' ' << bitboard::SquareToFile(best_move) << '\n';
     std::cout << "Engine Evaluation: " << std::cout.precision(3) << ret_value << '\n';
 }
-
-
 
 
 
@@ -175,6 +173,26 @@ void Reversi::Print()
     std::cout << "White: " << bitboard::CountSetBit(boards_[kWhite]) << "\n\n";
 }
 
+Reversi::operator std::vector<double>() const
+{
+    std::vector<double> vec;
+    vec.reserve(bitboard::kGridNum * 2 + 2);
+
+    for (int i = 0; i < bitboard::kGridNum; ++i)
+    {
+        vec.push_back(static_cast<double>(this->boards_[kBlack] & 1ull << i));
+    }
+
+    for (int i = 0; i < bitboard::kGridNum; ++i)
+    {
+        vec.push_back(static_cast<double>(this->boards_[kWhite] & 1ull << i));
+    }
+
+    vec.push_back(static_cast<double>(this->turn_));
+    vec.push_back(static_cast<double>(this->passed_));
+
+    return vec;
+}
 
 
 
@@ -475,4 +493,74 @@ void Reversi::MultiSearch(const int kMaxDepth, int depth, double& ret_value, dou
 
     ret_value = alpha;
     return;
+}
+
+
+
+
+std::mutex Reversi::mut;
+
+void Reversi::Train(int& round, Reversi game, NeuralNetwork& network)
+{
+    int max_depth = 0;
+    int depth_counter = 0;
+
+    while (true)
+    {
+        ++depth_counter;
+        U64 attackable_square = game.GetLegalMove();
+        if (attackable_square == 0) break;
+
+        mut.lock();
+        network.ForwardPropagate(std::vector<double>(game));
+        mut.unlock();
+
+
+        std::vector<double> predicted_moves = network.GetResult();
+        auto best_move = std::max_element(predicted_moves.begin(), predicted_moves.end()) - predicted_moves.begin();
+
+
+        /*mut.lock();
+        for (const auto& res : predicted_moves)
+        {
+            std::cout <<std::cout.precision(2) << res << ' ';
+        }
+        std::cout << '\n';
+        std::cout << best_move << '\n';
+        mut.unlock();*/
+
+
+        //std::cout << best_move << '\n';
+
+        std::vector<double> correct_moves(64);
+        for (int i = 0; i < bitboard::kGridNum; ++i)
+        {
+            correct_moves[i] = static_cast<double>(attackable_square >> i & 1);
+        }
+
+        mut.lock();
+        network.BackPropagate(std::move(correct_moves));
+        mut.unlock();
+
+
+        //std::cout <<"best_move: " << best_move << '\n';
+
+        if ((attackable_square & 1ull << best_move) == 0)
+        {
+            max_depth = std::max(max_depth, depth_counter);
+            std::clog << "Max Depth: " << max_depth << '\n';
+
+            depth_counter = 0;
+            game = Reversi();
+
+            mut.lock();
+            ++round;
+            mut.unlock();
+
+            continue;
+        }
+
+
+        game.Flip(static_cast<int>(best_move));
+    }
 }

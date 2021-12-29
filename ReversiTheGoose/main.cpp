@@ -3,11 +3,15 @@
 #include <crtdbg.h>
 
 #include <iostream>
+#include <fstream>
 #include <ctime>
 #include <chrono>
 #include <cassert>
+#include <Windows.h>
+
 #include "bitboard.h"
 #include "Reversi.h"
+#include "NeuralNetwork.h"
 
 
 int main()
@@ -25,14 +29,44 @@ int main()
 
     std::cout << "All the tables have been loaded"<<std::endl;
 
+    NeuralNetwork network
+    (
+        { 64 + 64 + 1,
+          (8 + 7 + 6 + 5 + 4 + 3 + 2 + 1) * 8 * 2 + (1 + 3 + 6 + 10 + 15 + 21 + 28 + 36 + 1 + 3 + 6 + 10 + 15 + 21 + 28) * 2,
+          8 + 8 + 15 * 2,
+          64
+        }
+    );
 
+    if (network.LoadNeuralNetwork("brain.txt"))
+    {
+        std::cout << "Loaded neural network data\n";
+        //network.PrintLayerInfo();
+    }
 
-    /*srand(time(NULL));
-    U64 board = U64(rand()) << 48 | U64(rand()) << 32 | U64(rand()) << 16 | U64(rand());*/
-
-
+    constexpr int kSimulGames = 100;
+    int round = 0;
     Reversi game;
-    game.Start();
+
+    for (int i = 0; i < kSimulGames; ++i)
+    {
+        std::thread thd(Reversi::Train, std::ref(round), game, std::ref(network));
+        thd.detach();
+    }
+
+    while (true)
+    {
+        Sleep(1000);
+
+        Reversi::mut.lock();
+
+        std::cout <<"Rounds: " << round << '\n';
+        network.SaveNeuralNetwork("brain.txt");
+
+        Reversi::mut.unlock();
+    }
+
+
 
     //int depth;
     //std::cin >> depth;
